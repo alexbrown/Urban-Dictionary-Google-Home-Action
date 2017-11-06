@@ -23,17 +23,20 @@ function parseResultsAndGetDefinition(res){
   return def;    
 }
 
-app.post('/lookup', function(req, res){
-  request('http://api.urbandictionary.com/v0/define?term=banana', function(error, response, body){
-    let def = parseResultsAndGetDefinition(response.body);
-    console.log(def);
-  });
+function buildGoogleResponse(def){
+  return {
+    speech: def,
+    displayText: def 
+  }
+}
 
-  var speech = req.body.result && req.body.result.parameters && req.body.result.parameters.word ? req.body.result.parameters.word : "Could you say that again?"
-  return res.json({
-    speech:speech,
-    displayText: speech
-  })
+app.post('/lookup', function(req, res){
+  var word = req.body.result && req.body.result.parameters && req.body.result.parameters.word ? req.body.result.parameters.word : "Could you say that again?"  
+  request('http://api.urbandictionary.com/v0/define?term=' + word, function(error, response, body){
+    let def = parseResultsAndGetDefinition(response.body);
+    let googleResponse = buildGoogleResponse(def);
+    return res.json(googleResponse);
+  });
 })
 
 app.listen((process.env.PORT || 8000), function(){
